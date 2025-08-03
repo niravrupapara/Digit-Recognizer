@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<!-- Website Header -->
+<div class="bg-primary text-white text-center py-4 mb-5 shadow-sm">
+    <h1 class="display-5 fw-bold">🔢 Digit Recognition Web App</h1>
+    <p class="lead mb-0">Using Deep Learning to Predict Handwritten Digits</p>
+</div>
+
+
+
+
+
+<div class="container text-center">
+
+    <!-- Hero Section -->
+    <div class="mb-5">
+        <h1 class="display-4 text-primary">🌪️ Digit Recognizer 🌝</h1>
+        <p class="lead text-muted">Select a test image to predict the digit using deep learning.</p>
+        <button class="btn btn-lg btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#imageModal">
+            Choose Image
+        </button>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select an Image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row row-cols-5 row-cols-md-6 g-3 justify-content-center">
+                        {% for image in images %}
+                        <div class="col">
+                            <form action="/predict" method="post">
+                                <input type="hidden" name="image_filename" value="{{ image }}">
+                                <button type="submit" class="btn p-0 border-0 bg-transparent shadow-sm rounded">
+                                    <img src="{{ url_for('static', filename=image) }}" class="img-fluid rounded" style="width: 70px; height: 70px; object-fit: contain;">
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+{% if image and prediction is not none %}
+<div class="container mt-5">
+    <div class="row justify-content-center align-items-center">
+        
+        <!-- Left Column: Image -->
+        <div class="col-md-4 text-center">
+            <h4 class="text-info"> Selected Image:</h4>
+            <img src="{{ image }}" class="img-thumbnail" width="120">
+        </div>
+
+        <!-- Right Column: Prediction -->
+        <div class="col-md-4 text-center">
+            <div id="predicted-output" class="text-light fw-bold fs-1">⏳ Predicting...</div>
+        
+            {% if prediction is not none %}
+            <script>
+                setTimeout(function() {
+                    document.getElementById("predicted-output").innerText = " Predicted Digit: {{ prediction }}";
+                }, 2000);
+            </script>
+            {% endif %}
+        </div>
+        
+        
+        
+
+    </div>
+</div>
+{% endif %}
+
+
+
+
+
+
+<script>
+    function updatePreview() {
+    const selected = document.getElementById("test-image").value;
+    const preview = document.getElementById("preview");
+
+    if (selected) {
+        preview.src = `/static/${selected}`;
+        preview.style.display = "block";
+    }
+}
+
+
+    function form_handler(event) {
+        event.preventDefault();
+    }
+
+    function send_data() {
+        document.querySelector('form').addEventListener('submit', form_handler);
+
+        var fd = new FormData(document.querySelector('form'));
+        var xhr = new XMLHttpRequest();
+
+        xhr.open('POST', '/ajax-predict', true);
+        document.getElementById("prediction").innerHTML = "⏳ Please wait, predicting...";
+
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                let result = xhr.responseText;
+
+                // Optional delay to simulate computation time
+                setTimeout(function () {
+                    document.getElementById("prediction").innerHTML = "🧠 Predicted Digit: " + result;
+                }, 800);
+            }
+        };
+
+        xhr.send(fd);
+    }
+</script>
+
+  
+{% endblock %}
